@@ -14,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
     preload() {
         this.load.image('face', 'imgs/bald head.png');
         this.load.image('hair', 'imgs/hair.png');
+        this.load.image('winFace', 'imgs/win img final.png');
         this.load.audio('win', 'audio/win audio.ogg');
         this.load.audio('lose', 'audio/lose audio.ogg');
     }
@@ -281,12 +282,7 @@ export default class GameScene extends Phaser.Scene {
         const maxLevel = CONFIG.LEVELS.length;
         const isMaxed = nextLevel > maxLevel;
 
-        this._showOverlay(
-            isMaxed ? 'ALL CLEAR!' : 'YOU WIN!',
-            CONFIG.UI.WIN_COLOR,
-            isMaxed ? '[ TAP TO REPLAY ]' : `Level ${nextLevel} →`,
-            () => this._restart(isMaxed ? CONFIG.START_LEVEL : nextLevel)
-        );
+        this._showWinPopup(() => this._restart(isMaxed ? CONFIG.START_LEVEL : nextLevel));
     }
 
     _handleLose(failedHair) {
@@ -438,6 +434,93 @@ export default class GameScene extends Phaser.Scene {
         }
 
         return { overlay, titleText, btnText };
+    }
+
+    _showWinPopup(onAction) {
+        const W = CONFIG.WIDTH;
+        const H = CONFIG.HEIGHT;
+        const dramaticPulse = false;
+        const pulseMinScale = dramaticPulse ? 0.92 : 0.98;
+        const pulseMaxScale = dramaticPulse ? 1.16 : 1.04;
+        const pulseDuration = dramaticPulse ? 340 : 620;
+
+        const overlay = this.add
+            .rectangle(W / 2, H / 2, W, H, CONFIG.UI.BG_OVERLAY, 0)
+            .setDepth(20)
+            .setInteractive();
+
+        this.tweens.add({
+            targets: overlay,
+            fillAlpha: CONFIG.UI.OVERLAY_ALPHA,
+            duration: 260,
+            ease: 'Quad.easeOut',
+        });
+
+        const winFace = this.add
+            .image(W / 2, H / 2 - 30, 'winFace')
+            .setDepth(21)
+            .setAlpha(0)
+            .setScale(0.7);
+
+        this.tweens.add({
+            targets: winFace,
+            alpha: 1,
+            scaleX: pulseMinScale,
+            scaleY: pulseMinScale,
+            duration: 280,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                this.tweens.add({
+                    targets: winFace,
+                    scaleX: pulseMaxScale,
+                    scaleY: pulseMaxScale,
+                    duration: pulseDuration,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                });
+            },
+        });
+
+        const titleText = this.add
+            .text(W / 2, H / 2 + 130, 'WON', {
+                fontFamily: 'Arial Black, Arial, sans-serif',
+                fontSize: `${CONFIG.UI.TITLE_FONT_SIZE}px`,
+                color: CONFIG.UI.WIN_COLOR,
+                stroke: '#000000',
+                strokeThickness: 4,
+            })
+            .setOrigin(0.5)
+            .setDepth(21)
+            .setAlpha(0)
+            .setScale(0.75);
+
+        this.tweens.add({
+            targets: titleText,
+            alpha: 1,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 320,
+            delay: 120,
+            ease: 'Back.easeOut',
+        });
+
+        const btnText = this.add
+            .text(W / 2, H / 2 + 180, '[ WAIT 3s ]', {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: `${CONFIG.UI.BUTTON_FONT_SIZE}px`,
+                color: '#ffffff',
+            })
+            .setOrigin(0.5)
+            .setDepth(21)
+            .setAlpha(0.75);
+
+        this.time.delayedCall(3000, () => {
+            if (!overlay.active || typeof onAction !== 'function') return;
+            btnText.setText('[ TAP FOR NEXT ROUND ]');
+            this._startRestartGlow(btnText);
+            overlay.once('pointerdown', onAction);
+        });
     }
 
     _startRestartGlow(btnText) {
