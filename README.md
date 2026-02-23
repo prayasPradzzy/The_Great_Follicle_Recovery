@@ -1,233 +1,139 @@
-The Great Follicle Recovery
+# The Great Follicle Recovery
 
 A deterministic, trigonometry-driven 2D arcade game built with Phaser 3.
 Plant hairs onto a rotating bald head with precision timing.
 
-Overview
+## Game Concept
 
-The Great Follicle Recovery is a timing-based arcade game inspired by Knife Hit, redesigned around pure mathematical attachment logic.
+Inspired by the core loop of Knife Hit, but redesigned with pure angle math:
 
-Instead of throwing knives at a log:
+- Target: rotating bald head
+- Projectile: a single hair
+- Goal: plant the required number of hairs
+- Lose condition: a new hair overlaps an existing one
+- Win condition: required count reached
 
-The target is a rotating bald head
+No physics engine is used. All gameplay is deterministic and math-driven.
 
-The projectile is a single hair
+## Core Mechanics
 
-The objective is to plant a required number of hairs
+### Rotating Target
 
-Overlapping an existing hair results in Game Over
+- Central face rotates continuously
+- Rotation uses delta time for frame-rate-independent behavior
+- Speed and direction can change by level rules
+- Rotation stops on win/lose
 
-Reaching the required count results in Victory
+### Hair Throw + Attachment
 
-No physics engine is used.
-All behavior is driven by deterministic angular mathematics.
+- Player taps/clicks to throw
+- Hair travels from bottom-center toward scalp via tween
+- Impact is resolved on tween completion
+- Hair sticks using polar-coordinate orbit math
 
-Core Gameplay Mechanics
-Rotating Target
-
-A central head sprite rotates continuously
-
-Rotation uses delta-based updates (frame rate independent)
-
-Angular velocity is configurable
-
-Rotation stops on win or lose
-
-Hair Throw Mechanic
-
-Player taps or clicks
-
-A hair spawns at the bottom center
-
-A linear tween sends it toward the scalp
-
-Impact angle is calculated when the tween completes
-
-The hair attaches using polar coordinate math
-
-Polar Coordinate Attachment
-
-Instead of collision bodies, the game uses deterministic circular math.
-
-When a hair sticks:
-
+```js
 offsetAngle = impactAngle - face.rotation
 
-Each frame:
-
 totalAngle = face.rotation + offsetAngle
-
 x = centerX + radius * Math.cos(totalAngle)
 y = centerY + radius * Math.sin(totalAngle)
+```
 
-This ensures:
+This guarantees stable circular attachment with no drift/jitter.
 
-Perfect circular attachment
+### Collision Detection (Angle-Based)
 
-Constant radius
+Hair overlap is resolved using wrapped angular distance:
 
-No jitter
-
-No floating
-
-No physics drift
-
-Collision Detection (Angle-Based)
-
-Hair overlap is detected using angular comparison:
-
+```js
 Math.abs(Phaser.Math.Angle.Wrap(newAngle - existingAngle)) < threshold
+```
 
-This avoids expensive 2D collision systems and keeps logic precise and performant.
+This keeps collision logic lightweight and precise.
 
-Tech Stack
-Layer	Technology
-Engine	Phaser 3
-Language	ES6 JavaScript
-Rendering	WebGL / Canvas
-Physics	None (manual math only)
-Audio	Web Audio API via Phaser Sound Manager
-Assets	PNG sprites
-Project Structure
-/src
- ├── main.js
- ├── scenes/
- │     └── GameScene.js
- ├── objects/
- │     ├── Face.js
- │     └── Hair.js
- ├── managers/
- │     └── GameManager.js
+## Tech Stack
 
-/assets
- ├── face.png
- ├── hair.png
- ├── win.mp3
- ├── lose.mp3
-Architecture Principles
+| Layer | Technology |
+|---|---|
+| Engine | Phaser 3 |
+| Language | ES6 JavaScript |
+| Rendering | WebGL / Canvas (Phaser) |
+| Physics | None (manual math only) |
+| Audio | Phaser Sound Manager / Web Audio |
+| Assets | PNG + OGG |
 
-Modular ES6 class-based structure
+## Project Structure
 
-No global variables
+```text
+.
+├── index.html
+├── style.css
+├── package.json
+├── README.md
+├── audio/
+├── imgs/
+└── src/
+	├── config.js
+	├── main.js
+	├── managers/
+	│   └── GameManager.js
+	├── objects/
+	│   ├── Face.js
+	│   └── Hair.js
+	└── scenes/
+		└── GameScene.js
+```
 
-No Arcade Physics
+## Run Locally
 
-No MatterJS
+### Prerequisites
 
-Clear separation of responsibilities
+- Node.js 18+
 
-Deterministic math-driven gameplay
+### Setup
 
-Installation & Running
-Option 1 — Simple Static Server
-npm install -g serve
-serve .
-
-Or:
-
-npx live-server
-Option 2 — Vite (Recommended for Development)
-npm create vite@latest
+```bash
 npm install
-npm run dev
+```
 
-Place Phaser and source files inside /src.
+### Start a local static server
 
-Design Decisions
-Why No Physics Engine?
+Use either option:
 
-This mechanic does not require a physics simulation.
+```bash
+npx serve .
+```
 
-Using Box2D or Arcade Physics would:
+or
 
-Increase complexity
+```bash
+npx live-server
+```
 
-Reduce determinism
+Then open the local URL shown in the terminal.
 
-Introduce floating-point drift
+## Current Gameplay Features
 
-The mechanic is purely angular.
-A physics engine would be unnecessary overhead.
+- Multi-level progression with level-specific speed/target/threshold
+- Direction flips and occasional speed spikes (higher levels)
+- Combo tracking
+- Near-miss feedback
+- Hit juice (flash, shake, punch scale, impact click)
+- Win/lose overlays with restart flow
 
-Why Polar Coordinates?
+## Design Principles
 
-Circular motion is naturally expressed as:
+- Deterministic gameplay over physics simulation
+- Modular ES6 architecture
+- No global gameplay state leakage
+- Clear separation between scene, objects, and game rules
 
-x = cx + r * Math.cos(theta)
-y = cy + r * Math.sin(theta)
+## Known Scope
 
-This guarantees:
+This is a focused arcade prototype. It is intentionally simple, with one primary game mode and no backend.
 
-Perfect circular motion
+## Repository
 
-Constant attachment radius
+Made with love for Mannu.
 
-No drift
-
-Clean mathematical model
-
-Edge Cases Handled
-
-Prevent multiple throws during active tween
-
-Impact angle calculated at tween completion
-
-Radius recalculated after scaling
-
-Head rotation stops on win or lose
-
-Audio playback controlled to prevent overlap
-
-Win Condition
-
-Player must plant a configurable number of hairs
-
-On success: win audio and overlay
-
-On failure: lose audio and restart option
-
-Future Improvements
-
-Level progression system
-
-Dynamic rotation direction changes
-
-Random obstacles on scalp
-
-Combo scoring system
-
-Particle effects and screen shake
-
-Mobile touch optimizations
-
-Progressive difficulty curve
-
-Boss head levels
-
-What This Project Demonstrates
-
-Practical Phaser 3 architecture
-
-Deterministic trigonometry-based gameplay
-
-Clean modular ES6 structure
-
-Collision handling without physics engines
-
-Responsive canvas layout handling
-
-Learning Outcome
-
-This project serves as a foundation for:
-
-Circular mechanics games
-
-Knife Hit–style arcade systems
-
-Orbit shooters
-
-Radial defense games
-
-Timing-based arcade mechanics
-
-Mastering this circular attachment system opens the door to a wide category of 2D arcade designs.
+Project link: https://github.com/prayasPradzzy/The_Great_Follicle_Recovery
