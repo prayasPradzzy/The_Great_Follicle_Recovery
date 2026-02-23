@@ -42,6 +42,7 @@ export default class GameScene extends Phaser.Scene {
             .setDepth(30);
 
         this._createUI(W, H);
+        this._createRepoLink(W, H);
         this.input.on('pointerdown', this._onTap, this);
     }
 
@@ -353,6 +354,46 @@ export default class GameScene extends Phaser.Scene {
             .setDepth(10);
 
         this._refreshUI();
+    }
+
+    _createRepoLink(W, H) {
+        const repoUrl = 'https://github.com/prayasPradzzy/The_Great_Follicle_Recovery';
+
+        const linkText = this.add
+            .text(W - 10, H - 10, 'MADE WITH LOVE FOR MANNU ♡', {
+                fontFamily: 'Arial Black, Arial, sans-serif',
+                fontSize: '13px',
+                color: CONFIG.UI.LOSE_COLOR,
+            })
+            .setOrigin(1, 1)
+            .setDepth(40)
+            .setAlpha(0.9)
+            .setInteractive({ useHandCursor: true });
+
+        this.tweens.add({
+            targets: linkText,
+            scaleX: 1.04,
+            scaleY: 1.04,
+            alpha: 1,
+            duration: 900,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+        });
+
+        linkText.on('pointerover', () => {
+            linkText.setAlpha(1);
+            linkText.setScale(1.03);
+        });
+
+        linkText.on('pointerout', () => {
+            linkText.setAlpha(0.9);
+            linkText.setScale(1);
+        });
+
+        linkText.on('pointerdown', () => {
+            window.open(repoUrl, '_blank', 'noopener,noreferrer');
+        });
     }
 
     _refreshUI() {
