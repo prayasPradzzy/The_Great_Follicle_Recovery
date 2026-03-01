@@ -27,6 +27,8 @@ export default class GameScene extends Phaser.Scene {
         this.gm = new GameManager(level);
         this.cameras.main.setBackgroundColor(CONFIG.UI.BG_COLOR);
 
+        this._createBackgroundPolish(W, H);
+
         this.face = new Face(this, this.gm.speed, this.gm.direction);
         this.stuckHairs = [];
         this.activeHair = null;
@@ -42,6 +44,7 @@ export default class GameScene extends Phaser.Scene {
             .setDepth(30);
 
         this._createUI(W, H);
+        this._createOnboardingHint(W, H);
         this._createRepoLink(W, H);
         this.input.on('pointerdown', this._onTap, this);
     }
@@ -68,6 +71,7 @@ export default class GameScene extends Phaser.Scene {
 
     _onTap() {
         if (!this.gm.isPlaying || this.launching || this.inputLocked) return;
+        this._consumeOnboardingTap();
         this.launching = true;
 
         const spawnX = CONFIG.FACE.CENTER_X;
@@ -342,6 +346,96 @@ export default class GameScene extends Phaser.Scene {
     }
 
     /* ── UI ── */
+
+    _createBackgroundPolish(W, H) {
+        const bg = this.add.graphics().setDepth(-30);
+        bg.fillGradientStyle(0xfffdf9, 0xfff6ef, 0xfff1fa, 0xfff8fd, 1);
+        bg.fillRect(0, 0, W, H);
+
+        if (!this.textures.exists('bgDot')) {
+            const dot = this.make.graphics({ x: 0, y: 0, add: false });
+            dot.fillStyle(0xffffff, 1);
+            dot.fillCircle(3, 3, 3);
+            dot.generateTexture('bgDot', 6, 6);
+            dot.destroy();
+        }
+
+        const particles = this.add.particles(0, 0, 'bgDot', {
+            x: { min: -20, max: W + 20 },
+            y: H + 20,
+            lifespan: { min: 9000, max: 13000 },
+            speedY: { min: -14, max: -6 },
+            speedX: { min: -3, max: 3 },
+            quantity: 1,
+            frequency: 500,
+            scale: { start: 0.6, end: 1.4 },
+            alpha: { start: 0.08, end: 0 },
+            tint: [0xffffff, 0xfff3fa, 0xf4fff8],
+            blendMode: Phaser.BlendModes.NORMAL,
+        });
+        particles.setDepth(-20);
+    }
+
+    _createOnboardingHint(W, H) {
+        if (this.registry.get('hasSeenLaunchHint') === true) {
+            this.hintText = null;
+            return;
+        }
+
+        this.hintText = this.add
+            .text(W / 2, H - 145, 'Tap to launch hair', {
+                fontFamily: 'Verdana, Arial, sans-serif',
+                fontSize: '18px',
+                color: '#7a6c90',
+                stroke: '#fffdf9',
+                strokeThickness: 3,
+            })
+            .setOrigin(0.5)
+            .setDepth(15)
+            .setAlpha(0.9);
+
+        this.tweens.add({
+            targets: this.hintText,
+            alpha: 0.55,
+            duration: 700,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+        });
+    }
+
+    _consumeOnboardingTap() {
+        if (!this.hintText || !this.hintText.active) return;
+
+        const tapCount = (this.registry.get('launchHintTapCount') || 0) + 1;
+        this.registry.set('launchHintTapCount', tapCount);
+
+        if (tapCount >= 3) {
+            this.registry.set('hasSeenLaunchHint', true);
+            this.tweens.killTweensOf(this.hintText);
+            this.tweens.add({
+                targets: this.hintText,
+                alpha: 0,
+                duration: 260,
+                ease: 'Quad.easeOut',
+                onComplete: () => {
+                    if (this.hintText) {
+                        this.hintText.destroy();
+                        this.hintText = null;
+                    }
+                },
+            });
+            return;
+        }
+
+        const targetAlpha = tapCount === 1 ? 0.7 : 0.45;
+        this.tweens.add({
+            targets: this.hintText,
+            alpha: targetAlpha,
+            duration: 160,
+            ease: 'Quad.easeOut',
+        });
+    }
 
     _createUI(W, _H) {
         this.scoreText = this.add
