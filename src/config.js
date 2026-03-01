@@ -101,12 +101,12 @@ export const CONFIG = {
     },
 
     UI: {
-        BG_COLOR: '#efe2cc',
-        TEXT_COLOR: '#333333',
-        WIN_COLOR: '#2e8b57',
-        LOSE_COLOR: '#cc3333',
+        BG_COLOR: '#FFF5EC',
+        TEXT_COLOR: '#3D3A36',
+        WIN_COLOR: '#2F9A6A',
+        LOSE_COLOR: '#D65A6F',
         BG_OVERLAY: 0x000000,
-        OVERLAY_ALPHA: 0.65,
+        OVERLAY_ALPHA: 0.58,
         TITLE_FONT_SIZE: 48,
         BUTTON_FONT_SIZE: 20,
         SCORE_FONT_SIZE: 22,
