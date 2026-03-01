@@ -1,5 +1,6 @@
 import { CONFIG } from './config.js';
 import GameScene from './scenes/GameScene.js';
+import StartMenuScene from './scenes/StartMenuScene.js';
 
 const game = new Phaser.Game({
     type: Phaser.AUTO,
@@ -7,7 +8,7 @@ const game = new Phaser.Game({
     height: CONFIG.HEIGHT,
     parent: 'game-container',
     backgroundColor: CONFIG.UI.BG_COLOR,
-    scene: [GameScene],
+    scene: [StartMenuScene, GameScene],
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
