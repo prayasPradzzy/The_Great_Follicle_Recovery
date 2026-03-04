@@ -455,8 +455,9 @@ export default class GameScene extends Phaser.Scene {
 
         const linkText = this.add
             .text(W - 10, H - 10, 'MADE WITH LOVE FOR MANNU ♡', {
-                fontFamily: 'Arial Black, Arial, sans-serif',
-                fontSize: '13px',
+                fontFamily: 'Segoe UI, Trebuchet MS, Arial, sans-serif',
+                fontSize: '11px',
+                fontStyle: 'bold',
                 color: CONFIG.UI.LOSE_COLOR,
             })
             .setOrigin(1, 1)
